@@ -2,17 +2,44 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Scraper — Books</title>
+  <title>Books Scraper Dashboard</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <style>
-    body { font-family: system-ui, sans-serif; margin: 16px; }
-    .card { border: 1px solid #ddd; padding: 12px; border-radius: 8px; margin-bottom: 8px; }
-  </style>
+
+  <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-  <h1>Books Scraper — items</h1>
-  <div id="items"></div>
+  <h1>Books Scraper Dashboard</h1>
 
-  <script src="/static/main.js"></script>
+  <nav class="nav">
+    <button onclick="showSection('results')">📚 Resultados</button>
+    <button onclick="showSection('files')">📄 Archivos</button>
+    <button onclick="showSection('calendar')">📅 Calendario</button>
+  </nav>
+
+  <section id="results" class="section visible">
+    <h2>Resultados del Scraper</h2>
+    <div id="results-container" class="grid"></div>
+  </section>
+
+  <section id="files" class="section">
+    <h2>Archivos Detectados</h2>
+    <div id="files-container" class="grid"></div>
+  </section>
+
+  <section id="calendar" class="section">
+    <h2>Eventos del Scraper</h2>
+    <div id="calendar-container"></div>
+  </section>
+
+  <script src="/static/results.js"></script>
+  <script src="/static/files.js"></script>
+  <script src="/static/calendar.js"></script>
+
+  <script>
+    function showSection(id) {
+      document.querySelectorAll('.section').forEach(sec => sec.classList.remove('visible'));
+      document.getElementById(id).classList.add('visible');
+    }
+  </script>
 </body>
 </html>
