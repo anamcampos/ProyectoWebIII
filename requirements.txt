@@ -10,3 +10,4 @@ apscheduler==3.10.1
 python-dotenv==1.0.1
 pytest==7.4.0
 python-json-logger==2.0.7
+openai

@@ -1,0 +1,42 @@
+version: "3.8"
+services:
+  web:
+    build: .
+    container_name: books_web
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./downloads:/app/downloads
+      - ./logs:/app/logs
+    depends_on:
+      - db
+
+  scheduler:
+    build: .
+    container_name: books_scheduler
+    env_file:
+      - .env
+    command: ["python", "scheduler.py"]
+    volumes:
+      - ./downloads:/app/downloads
+      - ./logs:/app/logs
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    container_name: books_db
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  pgdata:
