@@ -1,28 +1,33 @@
-FROM python:3.11-slim
+FROM python:3.10-bullseye
 
-# --- install system deps (chrome) ---
+# --- system deps ---
 RUN apt-get update && apt-get install -y \
-    wget gnupg2 ca-certificates unzip curl xvfb \
-    fonts-liberation libnss3 libgconf-2-4 libx11-xcb1 libxcomposite1 libxcursor1 \
-    libxdamage1 libxi6 libxtst6 libatk-bridge2.0-0 libgtk-3-0 libasound2 \
-  && rm -rf /var/lib/apt/lists/*
-# Install Chrome (stable)
-RUN wget -q -O /tmp/google-chrome-stable_current_amd64.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
- && apt-get update && apt-get install -y /tmp/google-chrome-stable_current_amd64.deb || apt-get -f install -y \
- && rm -f /tmp/google-chrome-stable_current_amd64.deb \
- && rm -rf /var/lib/apt/lists/*
+    wget gnupg unzip curl xvfb \
+    fonts-liberation libnss3 libx11-xcb1 \
+    libxcomposite1 libxcursor1 libxdamage1 \
+    libxi6 libxtst6 libatk-bridge2.0-0 \
+    libgtk-3-0 libasound2 libxrandr2 libxss1 libgbm1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# --- install chrome ---
+RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - && \
+    echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" \
+    > /etc/apt/sources.list.d/google.list && \
+    apt-get update && apt-get install -y google-chrome-stable
+
+# --- install chromedriver ---
+RUN CHROME_VERSION=$(google-chrome --version | sed 's/Google Chrome //') && \
+    CHROMEDRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE") && \
+    wget -O /tmp/chromedriver.zip "https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip" && \
+    unzip /tmp/chromedriver.zip -d /usr/local/bin/ && \
+    chmod +x /usr/local/bin/chromedriver && \
+    rm -rf /tmp/chromedriver.zip
+
+# --- install python deps ---
+COPY requirements.txt /app/requirements.txt
 WORKDIR /app
-COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# copy project
-COPY . .
-# create necessary directories
-RUN mkdir -p /app/downloads /app/logs
-# set environment variables
-ENV PYTHONUNBUFFERED=1
-# expose api port
-EXPOSE 5000
+COPY . /app
 
-# default command runs gunicorn for API
-CMD ["gunicorn", "api.json_api_server:app", "-b", "0.0.0.0:5000", "--workers", "1", "--threads", "4"]
+CMD ["python", "main.py"]
